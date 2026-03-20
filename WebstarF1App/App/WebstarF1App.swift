@@ -8,10 +8,10 @@
 import SwiftUI
 
 @main
-struct WebstarF1AppApp: App {
+struct WebstarF1App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SeasonsView()
         }
     }
 }
