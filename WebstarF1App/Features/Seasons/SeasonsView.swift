@@ -34,10 +34,9 @@ struct SeasonsView: View {
                             .buttonStyle(.borderless)
                         }
                     }
-                    .navigationDestination(for: Season.self, destination: { season in
-                        SeasonDriversView(season: season)
-                    })
-                }
+                }.navigationDestination(for: Season.self, destination: { season in
+                    SeasonDriversView(season: season)
+                })
             }
         }
         .task { await viewModel.fetchSeasons() }
