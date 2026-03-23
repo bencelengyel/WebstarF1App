@@ -12,22 +12,29 @@ struct SeasonsView: View {
     @Environment(\.openURL) private var openURL
     
     var body: some View {
-        List(viewModel.seasons) { season in
-            HStack {
-                Text(season.year)
-                Spacer()
-                Button(action: {
-                    if let url = URL(string: season.url) {
-                        openURL(url)
+        NavigationStack{
+            List(viewModel.seasons) { season in
+                NavigationLink(value: season) {
+                    HStack {
+                        Text(season.year)
+                        Spacer()
+                        Button(action: {
+                            if let url = URL(string: season.url) {
+                                openURL(url)
+                            }
+                        },
+                               label: {
+                            Image(systemName: "info.circle")
+                        })
+                        .buttonStyle(.borderless)
                     }
-                },
-                       label: {
-                    Image(systemName: "info.circle")
-                })
-                .buttonStyle(.borderless)
+                }
             }
-        }.task {
-            await viewModel.fetchSeasons()
+                .task { await viewModel.fetchSeasons() }
+                .navigationTitle("Seasons")
+                .navigationDestination(for: Season.self, destination: { season in
+                    FieldView(season: season)
+                })
         }
     }
 }

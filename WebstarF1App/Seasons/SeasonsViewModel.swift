@@ -26,7 +26,7 @@ class SeasonsViewModel: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(for: request)
             let decoded = try JSONDecoder().decode(SeasonResponse.self, from: data)
-            seasons = decoded.seasons
+            seasons = decoded.seasons.reversed()
         } catch {
             errorMessage = error.localizedDescription
         }

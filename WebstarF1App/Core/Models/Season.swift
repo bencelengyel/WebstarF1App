@@ -5,7 +5,7 @@
 //  Created by Bence on 2026.03.20.
 //
 
-struct Season: Codable, Identifiable {
+struct Season: Codable, Identifiable, Hashable {
     var id: String { year }
     let year: String
     let url: String
