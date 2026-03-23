@@ -38,6 +38,5 @@ class SeasonDriversViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
-        
     }
 }
