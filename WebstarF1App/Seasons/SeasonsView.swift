@@ -9,13 +9,26 @@ import SwiftUI
 
 struct SeasonsView: View {
     @StateObject private var viewModel = SeasonsViewModel()
+    @Environment(\.openURL) private var openURL
     
     var body: some View {
         List(viewModel.seasons) { season in
+            HStack {
                 Text(season.year)
-            }.task {
-                await viewModel.fetchSeasons()
+                Spacer()
+                Button(action: {
+                    if let url = URL(string: season.url) {
+                        openURL(url)
+                    }
+                },
+                       label: {
+                    Image(systemName: "info.circle")
+                })
+                .buttonStyle(.borderless)
             }
+        }.task {
+            await viewModel.fetchSeasons()
+        }
     }
 }
 
