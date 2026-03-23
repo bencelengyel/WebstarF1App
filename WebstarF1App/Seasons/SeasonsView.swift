@@ -13,29 +13,36 @@ struct SeasonsView: View {
     
     var body: some View {
         NavigationStack{
-            List(viewModel.seasons) { season in
-                NavigationLink(value: season) {
-                    HStack {
-                        Text(season.year)
-                        Spacer()
-                        Button(action: {
-                            if let url = URL(string: season.url) {
-                                openURL(url)
-                            }
-                        },
-                               label: {
-                            Image(systemName: "info.circle")
-                        })
-                        .buttonStyle(.borderless)
+            if viewModel.isLoading {
+                ProgressView()
+            } else if let error = viewModel.errorMessage {
+                Text(error)
+            } else {
+                List(viewModel.seasons) { season in
+                    NavigationLink(value: season) {
+                        HStack {
+                            Text(season.year)
+                            Spacer()
+                            Button(action: {
+                                if let url = URL(string: season.url) {
+                                    openURL(url)
+                                }
+                            },
+                                   label: {
+                                Image(systemName: "info.circle")
+                            })
+                            .buttonStyle(.borderless)
+                        }
                     }
+                    .navigationDestination(for: Season.self, destination: { season in
+                        SeasonDriversView(season: season)
+                    })
                 }
             }
-                .task { await viewModel.fetchSeasons() }
-                .navigationTitle("Seasons")
-                .navigationDestination(for: Season.self, destination: { season in
-                    FieldView(season: season)
-                })
         }
+        .task { await viewModel.fetchSeasons() }
+        .navigationTitle("Seasons")
+        
     }
 }
 
