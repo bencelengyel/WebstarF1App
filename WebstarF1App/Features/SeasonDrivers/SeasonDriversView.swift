@@ -13,28 +13,37 @@ struct SeasonDriversView: View {
     let season: Season
     
     var body: some View {
-        List(viewModel.drivers) { driver in
-            NavigationLink(value: driver) {
-                HStack {
-                    VStack (alignment: .leading) {
-                        Text("\(driver.givenName) \(driver.familyName)")
-                        if let number = driver.racingNumber { Text("Number: \(number)")}
-                        Text("Nationality: \(driver.nationality)")
-                        Text("Date of birth: \(driver.dateOfBirth)")
-                    }
-                    Spacer()
-                    Button(action: {
-                        if let url = URL(string: driver.url) {
-                            openURL(url)
-                        }
-                    },
-                           label: {
-                        Image(systemName: "info.circle")
-                    })
-                    .buttonStyle(.borderless)
+        List {
+            Section("Nationalities") {
+                ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                    Text("\(nationality): \(count)")
                 }
             }
             
+            Section("Drivers") {
+                ForEach(viewModel.drivers) { driver in
+                    NavigationLink(value: driver) {
+                        HStack {
+                            VStack (alignment: .leading) {
+                                Text("\(driver.givenName) \(driver.familyName)")
+                                if let number = driver.racingNumber { Text("Number: \(number)")}
+                                Text("Nationality: \(driver.nationality)")
+                                Text("Date of birth: \(driver.dateOfBirth)")
+                            }
+                            Spacer()
+                            Button(action: {
+                                if let url = URL(string: driver.url) {
+                                    openURL(url)
+                                }
+                            },
+                                   label: {
+                                Image(systemName: "info.circle")
+                            })
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                }
+            }
         }
         .task { await viewModel.fetchSeasonDrivers(season: season) }
         .navigationTitle("\(season.year) season")
@@ -42,6 +51,8 @@ struct SeasonDriversView: View {
             DriverProfileView(driver: driver)
         })
     }
-    
-    
+}
+
+#Preview {
+    SeasonDriversView(season: Season(year: "2019", url: "https://en.wikipedia.org/wiki/2019_Formula_One_World_Championship"))
 }

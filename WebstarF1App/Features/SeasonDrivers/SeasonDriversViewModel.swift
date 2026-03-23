@@ -14,6 +14,13 @@ class SeasonDriversViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
+    var nationalityCounts: [(String, Int)] {
+        Dictionary(grouping: drivers, by: \.nationality)
+            .mapValues { $0.count }
+            .sorted { $0.value > $1.value }
+            .map { ($0.key, $0.value) }
+    }
+    
     func fetchSeasonDrivers(season: Season) async {
         guard let url = URL(string: "https://api.jolpi.ca/ergast/f1/\(season.year)/drivers?limit=100") else { return }
         
