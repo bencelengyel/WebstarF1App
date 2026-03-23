@@ -10,14 +10,20 @@ import Combine
 
 @MainActor
 class DriverProfileViewModel: ObservableObject {
-    //let driver: Driver
+    let driver: Driver
+    
+    init(driver: Driver) {
+        self.driver = driver
+    }
     
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
-    @Published var driverImage: URL = URL(string: "https://via.placeholder.com/150")!
+    @Published var driverImage: URL? = nil
     
-    func fetchDriverImage(name: String) async  {
+    func fetchDriverImage() async  {
+        let name = "\(driver.givenName)_\(driver.familyName)"
+        
         guard let url = URL(string: "https://www.googleapis.com/customsearch/v1?key=AIzaSyADx9HTfg1vEtKt2KllxBhwpjB5qUvO52k&cx=000213537299717655806:fsqehiydnxg&q=\(name)_F1") else { return }
         
         isLoading = true
