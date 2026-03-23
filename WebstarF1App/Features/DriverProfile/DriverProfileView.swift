@@ -9,6 +9,9 @@ import SwiftUI
 struct DriverProfileView: View {
     let driver: Driver
     
+    @StateObject private var viewModel = DriverProfileViewModel()
+    @Environment(\.openURL) private var openURL
+    
     var body: some View {
         VStack (alignment: .leading){
                 HStack (alignment: .top){
