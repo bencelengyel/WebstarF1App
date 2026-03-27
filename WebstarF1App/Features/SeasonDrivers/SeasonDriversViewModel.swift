@@ -14,6 +14,8 @@ class SeasonDriversViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
+    private let apiService = F1APIService()
+    
     var nationalityCounts: [(String, Int)] {
         Dictionary(grouping: drivers, by: \.nationality)
             .mapValues { $0.count }
@@ -22,18 +24,14 @@ class SeasonDriversViewModel: ObservableObject {
     }
     
     func fetchSeasonDrivers(season: Season) async {
-        guard let url = URL(string: "https://api.jolpi.ca/ergast/f1/\(season.year)/drivers?limit=100") else { return }
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let url = "https://api.jolpi.ca/ergast/f1/\(season.year)/drivers?limit=100"
         
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let decoded = try JSONDecoder().decode(DriverResponse.self, from: data)
+            let decoded: DriverResponse = try await apiService.fetch(from: url)
             drivers = decoded.drivers
         } catch {
             errorMessage = error.localizedDescription

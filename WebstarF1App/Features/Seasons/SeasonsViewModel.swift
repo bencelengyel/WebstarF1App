@@ -13,23 +13,18 @@ class SeasonsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     
+    private let apiService = F1APIService()
+    
     func fetchSeasons() async {
-        guard let url = URL(string: "https://api.jolpi.ca/ergast/f1/seasons?limit=100") else { return }
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         do {
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let decoded = try JSONDecoder().decode(SeasonResponse.self, from: data)
+            let decoded: SeasonResponse = try await apiService.fetch(from: "https://api.jolpi.ca/ergast/f1/seasons?limit=100")
             seasons = decoded.seasons.reversed()
         } catch {
             errorMessage = error.localizedDescription
         }
-        
     }
 }

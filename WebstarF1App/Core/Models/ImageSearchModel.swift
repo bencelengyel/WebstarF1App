@@ -1,5 +1,5 @@
 //
-//  GoogleImageModel.swift
+//  ImageSearchModel.swift
 //  WebstarF1App
 //
 //  Created by Bence on 2026.03.23.
@@ -19,7 +19,7 @@ struct SearchItem: Decodable {
     let pagemap: PageMap?
 }
 
-struct GoogleImageSearchResponse: Decodable {
+struct ImageSearchResponse: Decodable {
     let items: [SearchItem]
     
     var imageURL: String? {
