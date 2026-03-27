@@ -16,8 +16,14 @@ struct SeasonDriversView: View {
         List {
             if viewModel.searchText.isEmpty {
                 Section("Nationalities") {
-                    ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
-                        Text("\(nationality): \(count)")
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
+                        ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                            Text("\(NationalityFlags.flag(for: nationality)) \(count)")
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.gray.opacity(0.15))
+                                .cornerRadius(16)
+                        }
                     }
                 }
             }
