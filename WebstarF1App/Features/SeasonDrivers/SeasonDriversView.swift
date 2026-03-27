@@ -14,14 +14,16 @@ struct SeasonDriversView: View {
     
     var body: some View {
         List {
-            Section("Nationalities") {
-                ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
-                    Text("\(nationality): \(count)")
+            if viewModel.searchText.isEmpty {
+                Section("Nationalities") {
+                    ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                        Text("\(nationality): \(count)")
+                    }
                 }
             }
             
             Section("Drivers") {
-                ForEach(viewModel.drivers) { driver in
+                ForEach(viewModel.filteredDrivers) { driver in
                     NavigationLink(value: driver) {
                         HStack {
                             VStack (alignment: .leading) {
@@ -50,6 +52,7 @@ struct SeasonDriversView: View {
         .navigationDestination(for: Driver.self, destination: { driver in
             DriverProfileView(driver: driver)
         })
+        .searchable(text: $viewModel.searchText)
     }
 }
 
