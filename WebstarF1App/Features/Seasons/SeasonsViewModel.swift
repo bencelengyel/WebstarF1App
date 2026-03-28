@@ -21,8 +21,7 @@ class SeasonsViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            let decoded: SeasonResponse = try await apiService.fetch(from: "https://api.jolpi.ca/ergast/f1/seasons?limit=100")
-            seasons = decoded.seasons.reversed()
+            seasons = try await apiService.fetchSeasons().reversed()
         } catch {
             errorMessage = error.localizedDescription
         }

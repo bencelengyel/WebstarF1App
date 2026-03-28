@@ -39,7 +39,7 @@ class SeasonDriversViewModel: ObservableObject {
         }
     }
     
-    var drivers: [Driver] = []
+    @Published var drivers: [Driver] = []
     @Published var isLoading = false
     @Published var errorMessage: String? = nil
     @Published var searchText: String = ""
@@ -53,15 +53,12 @@ class SeasonDriversViewModel: ObservableObject {
     }
     
     func fetchSeasonDrivers(season: Season) async {
-        let url = "https://api.jolpi.ca/ergast/f1/\(season.year)/drivers?limit=100"
-        
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         do {
-            let decoded: DriverResponse = try await apiService.fetch(from: url)
-            drivers = decoded.drivers
+            drivers = try await apiService.fetchDrivers(year: season.year)
         } catch {
             errorMessage = error.localizedDescription
         }
