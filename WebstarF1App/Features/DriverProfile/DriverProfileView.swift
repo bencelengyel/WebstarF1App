@@ -41,7 +41,7 @@ struct DriverProfileView: View {
             }
             if let nationality = viewModel.driver.nationality { Text("Nationality: \(nationality)") }
             if let number = viewModel.driver.racingNumber { Text("Number: \(number)") }
-            if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(dob)") }
+            if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
             Spacer()
         }
     }

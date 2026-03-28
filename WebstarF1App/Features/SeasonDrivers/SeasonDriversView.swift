@@ -57,7 +57,7 @@ struct SeasonDriversView: View {
                     Text("\(driver.givenName) \(driver.familyName)")
                     if let number = driver.racingNumber { Text("Number: \(number)") }
                     if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
-                    if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
+                    if let dob = driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
                 }
                 Spacer()
                 if let urlString = driver.url, let url = URL(string: urlString) {
