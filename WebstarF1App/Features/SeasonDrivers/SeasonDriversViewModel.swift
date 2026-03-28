@@ -12,17 +12,33 @@ import Combine
 class SeasonDriversViewModel: ObservableObject {
     private let apiService = F1APIService()
     
-    var filteredDrivers: [Driver] {
-        if searchText.isEmpty {
-            return drivers
-        }
-        return drivers.filter { driver in
-            let query = searchText.lowercased()
-            return driver.givenName.lowercased().contains(query)
-            || driver.familyName.lowercased().contains(query)
-            || (driver.nationality?.lowercased().contains(query) ?? false)
+    private var regularDrivers: [Driver] {
+        drivers.filter { $0.nationality != nil }
+    }
+    
+    private var guestDrivers: [Driver] {
+        drivers.filter { $0.nationality == nil }
+    }
+    
+    var filteredRegularDrivers: [Driver] {
+        if searchText.isEmpty { return regularDrivers }
+        let query = searchText.lowercased()
+        return regularDrivers.filter {
+            $0.givenName.lowercased().contains(query)
+            || $0.familyName.lowercased().contains(query)
+            || ($0.nationality?.lowercased().contains(query) ?? false)
         }
     }
+    
+    var filteredGuestDrivers: [Driver] {
+        if searchText.isEmpty { return guestDrivers }
+        let query = searchText.lowercased()
+        return guestDrivers.filter {
+            $0.givenName.lowercased().contains(query)
+            || $0.familyName.lowercased().contains(query)
+        }
+    }
+    
     var drivers: [Driver] = []
     @Published var isLoading = false
     @Published var errorMessage: String? = nil

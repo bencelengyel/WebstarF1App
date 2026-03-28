@@ -29,26 +29,15 @@ struct SeasonDriversView: View {
             }
             
             Section("Drivers") {
-                ForEach(viewModel.filteredDrivers) { driver in
-                    NavigationLink(value: driver) {
-                        HStack {
-                            VStack (alignment: .leading) {
-                                Text("\(driver.givenName) \(driver.familyName)")
-                                if let number = driver.racingNumber { Text("Number: \(number)")}
-                                if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
-                                if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
-                            }
-                            Spacer()
-                            if let urlString = driver.url, let url = URL(string: urlString) {
-                                Button(action: {
-                                    openURL(url)
-                                },
-                                       label: {
-                                    Image(systemName: "info.circle")
-                                })
-                                .buttonStyle(.borderless)
-                            }
-                        }
+                ForEach(viewModel.filteredRegularDrivers) { driver in
+                    driverRow(driver)
+                }
+            }
+            
+            if !viewModel.filteredGuestDrivers.isEmpty {
+                Section("Guest Drivers") {
+                    ForEach(viewModel.filteredGuestDrivers) { driver in
+                        driverRow(driver)
                     }
                 }
             }
@@ -59,6 +48,29 @@ struct SeasonDriversView: View {
             DriverProfileView(driver: driver)
         })
         .searchable(text: $viewModel.searchText)
+    }
+    private func driverRow(_ driver: Driver) -> some View {
+        NavigationLink(value: driver) {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("\(driver.givenName) \(driver.familyName)")
+                    if let number = driver.racingNumber { Text("Number: \(number)") }
+                    if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
+                    if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
+                }
+                Spacer()
+                if let urlString = driver.url, let url = URL(string: urlString) {
+                    Button(action: {
+                        
+                        openURL(url)
+                        
+                    }, label: {
+                        Image(systemName: "info.circle")
+                    })
+                    .buttonStyle(.borderless)
+                }
+            }
+        }
     }
 }
 
