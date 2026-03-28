@@ -27,10 +27,11 @@ struct SeasonDriversView: View {
                     }
                 }
             }
-            
-            Section("Drivers") {
-                ForEach(viewModel.filteredRegularDrivers) { driver in
-                    driverRow(driver)
+            if !viewModel.filteredRegularDrivers.isEmpty {
+                Section("Drivers") {
+                    ForEach(viewModel.filteredRegularDrivers) { driver in
+                        driverRow(driver)
+                    }
                 }
             }
             
