@@ -35,19 +35,19 @@ struct SeasonDriversView: View {
                             VStack (alignment: .leading) {
                                 Text("\(driver.givenName) \(driver.familyName)")
                                 if let number = driver.racingNumber { Text("Number: \(number)")}
-                                Text("Nationality: \(driver.nationality)")
-                                Text("Date of birth: \(driver.dateOfBirth)")
+                                if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
+                                if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
                             }
                             Spacer()
-                            Button(action: {
-                                if let url = URL(string: driver.url) {
+                            if let urlString = driver.url, let url = URL(string: urlString) {
+                                Button(action: {
                                     openURL(url)
-                                }
-                            },
-                                   label: {
-                                Image(systemName: "info.circle")
-                            })
-                            .buttonStyle(.borderless)
+                                },
+                                       label: {
+                                    Image(systemName: "info.circle")
+                                })
+                                .buttonStyle(.borderless)
+                            }
                         }
                     }
                 }

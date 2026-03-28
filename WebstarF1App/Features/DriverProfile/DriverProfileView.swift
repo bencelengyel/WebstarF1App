@@ -32,19 +32,19 @@ struct DriverProfileView: View {
                 Text("\(driver.givenName) \(driver.familyName)")
                 if let code = driver.code { Text("- \(code)")}
                 Spacer()
-                Button(action: {
-                    if let url = URL(string: driver.url) {
-                        openURL(url)
-                    }
-                },
-                       label: {
-                    Image(systemName: "info.circle")
-                })
-                .buttonStyle(.borderless)
+                if let urlString = driver.url, let url = URL(string: urlString) {
+                    Button(action: {
+                            openURL(url)
+                    },
+                           label: {
+                        Image(systemName: "info.circle")
+                    })
+                    .buttonStyle(.borderless)
+                }
             }
-            Text("Nationality: \(driver.nationality)")
+            if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
             if let number = driver.racingNumber { Text("Number: \(number)")}
-            Text("Date of birth: \(driver.dateOfBirth)")
+            if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
             
         }.padding()
         Spacer()

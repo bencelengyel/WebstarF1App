@@ -11,9 +11,9 @@ struct Driver: Codable, Identifiable, Hashable {
     let code: String?
     let givenName: String
     let familyName: String
-    let dateOfBirth: String
-    let nationality: String
-    let url: String
+    let dateOfBirth: String?
+    let nationality: String?
+    let url: String?
     
     enum CodingKeys: String, CodingKey {
             case id = "driverId"

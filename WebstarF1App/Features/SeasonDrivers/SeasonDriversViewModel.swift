@@ -20,7 +20,7 @@ class SeasonDriversViewModel: ObservableObject {
             let query = searchText.lowercased()
             return driver.givenName.lowercased().contains(query)
             || driver.familyName.lowercased().contains(query)
-            || driver.nationality.lowercased().contains(query)
+            || (driver.nationality?.lowercased().contains(query) ?? false)
         }
     }
     var drivers: [Driver] = []
@@ -30,7 +30,7 @@ class SeasonDriversViewModel: ObservableObject {
     
     
     var nationalityCounts: [(String, Int)] {
-        Dictionary(grouping: drivers, by: \.nationality)
+        Dictionary(grouping: drivers.filter { $0.nationality != nil }, by: { $0.nationality! })
             .mapValues { $0.count }
             .sorted { $0.value > $1.value }
             .map { ($0.key, $0.value) }
