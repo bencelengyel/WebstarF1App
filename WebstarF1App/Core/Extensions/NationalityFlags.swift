@@ -40,7 +40,14 @@ enum NationalityFlags {
         "New Zealander": "🇳🇿",
         "Venezuelan": "🇻🇪",
         "Indonesian": "🇮🇩",
-        "Korean": "🇰🇷"
+        "Korean": "🇰🇷",
+        "Chilean": "🇨🇱",
+        "Czech": "🇨🇿",
+        "East German": "🇩🇪",
+        "Liechtensteiner": "🇱🇮",
+        "Malaysian": "🇲🇾",
+        "Rhodesian": "🇿🇼",
+        "Uruguayan": "🇺🇾"
     ]
     
     static func flag(for nationality: String) -> String {
