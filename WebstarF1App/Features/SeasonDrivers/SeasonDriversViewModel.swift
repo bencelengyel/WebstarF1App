@@ -46,7 +46,7 @@ class SeasonDriversViewModel: ObservableObject {
     
     
     var nationalityCounts: [(String, Int)] {
-        Dictionary(grouping: drivers.filter { $0.nationality != nil }, by: { $0.nationality! })
+        Dictionary(grouping: drivers.compactMap(\.nationality), by: { $0 })
             .mapValues { $0.count }
             .sorted { $0.value > $1.value }
             .map { ($0.key, $0.value) }

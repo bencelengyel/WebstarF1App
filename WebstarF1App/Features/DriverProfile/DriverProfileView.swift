@@ -7,13 +7,10 @@
 import SwiftUI
 
 struct DriverProfileView: View {
-    let driver: Driver
-    
     @StateObject private var viewModel: DriverProfileViewModel
     @Environment(\.openURL) private var openURL
     
     init(driver: Driver) {
-        self.driver = driver
         _viewModel = StateObject(wrappedValue: DriverProfileViewModel(driver: driver))
     }
     
@@ -29,24 +26,23 @@ struct DriverProfileView: View {
                 await viewModel.fetchDriverImage()
             }
             HStack (alignment: .top, spacing: 0){
-                Text("\(driver.givenName) \(driver.familyName)")
-                if let code = driver.code { Text("- \(code)")}
+                Text("\(viewModel.driver.givenName) \(viewModel.driver.familyName)")
+                if let code = viewModel.driver.code { Text("- \(code)")}
                 Spacer()
-                if let urlString = driver.url, let url = URL(string: urlString) {
-                    Button(action: {
-                            openURL(url)
-                    },
-                           label: {
-                        Image(systemName: "info.circle")
-                    })
-                    .buttonStyle(.borderless)
-                }
+                Button(action: {
+                    if let urlString = viewModel.driver.url, let url = URL(string: urlString) {
+                        openURL(url)
+                    }
+                },
+                       label: {
+                    Image(systemName: "info.circle")
+                })
+                .buttonStyle(.borderless)
             }
-            if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
-            if let number = driver.racingNumber { Text("Number: \(number)")}
-            if let dob = driver.dateOfBirth { Text("Date of birth: \(dob)") }
-            
-        }.padding()
-        Spacer()
+            if let nationality = viewModel.driver.nationality { Text("Nationality: \(nationality)") }
+            if let number = viewModel.driver.racingNumber { Text("Number: \(number)") }
+            if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(dob)") }
+            Spacer()
+        }
     }
 }
