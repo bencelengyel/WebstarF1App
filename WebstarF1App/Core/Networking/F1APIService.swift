@@ -11,12 +11,12 @@ struct F1APIService {
     private static let baseURL = "https://api.jolpi.ca/ergast/f1"
     
     func fetchSeasons() async throws -> [Season] {
-        let response: SeasonResponse = try await fetch(from: "\(Self.baseURL)/seasons?limit=100")
+        let response: SeasonResponse = try await fetch(from: Self.baseURL + "/seasons?limit=100")
         return response.seasons
     }
     
     func fetchDrivers(for year: String) async throws -> [Driver] {
-        let response: DriverResponse = try await fetch(from: "\(Self.baseURL)/\(year)/drivers?limit=100")
+        let response: DriverResponse = try await fetch(from: Self.baseURL + "/\(year)/drivers?limit=100")
         return response.drivers
     }
     

@@ -28,16 +28,20 @@ struct DriverProfileView: View {
                 .frame(maxWidth: .infinity, minHeight: 200)
                 .foregroundColor(.secondary)
             case .empty:
-                Image(systemName: "person.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(.gray.opacity(0.4))
-                    .frame(maxWidth: .infinity, minHeight: 200)
-                    .background(Color.gray.opacity(0.1))
+                VStack {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 60))
+                    Text("No image")
+                }
+                .foregroundColor(.gray.opacity(0.4))
+                .frame(maxWidth: .infinity, minHeight: 200)
+                .background(Color.gray.opacity(0.1))
             case .loaded(let url):
                 AsyncImage(url: url) { image in
                     image.resizable().aspectRatio(contentMode: .fit)
                 } placeholder: {
                     ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 200)
                 }
             }
             

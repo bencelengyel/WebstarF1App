@@ -20,7 +20,7 @@ struct SeasonDriversView: View {
             case .error(let message):
                 ErrorView(message: message, onRetry: { Task { await viewModel.fetchDrivers(for: season) } })
             case .empty:
-                Text("No drivers available")
+                Text("No drivers found")
             case .loaded:
                 List {
                     if viewModel.searchText.isEmpty {

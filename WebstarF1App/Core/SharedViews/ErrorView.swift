@@ -21,7 +21,7 @@ struct ErrorView: View {
                 .buttonStyle(.borderedProminent)
                 .font(.title3)
         }
-        
+        .padding()
     }
 }
 
