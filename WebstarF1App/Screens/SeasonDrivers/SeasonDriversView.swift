@@ -36,23 +36,16 @@ struct SeasonDriversView: View {
                             }
                         }
                     }
-                    if !viewModel.filteredRegularDrivers.isEmpty {
-                        Section("Drivers") {
-                            ForEach(viewModel.filteredRegularDrivers) { driver in
-                                driverRow(driver)
-                            }
-                        }
-                    }
-                    
-                    if !viewModel.filteredGuestDrivers.isEmpty {
-                        Section("Guest Drivers") {
-                            ForEach(viewModel.filteredGuestDrivers) { driver in
+                    Section("Drivers") {
+                        if viewModel.filteredDrivers.isEmpty {
+                            Text("No drives that match the search criteria")
+                        }else {
+                            ForEach(viewModel.filteredDrivers) { driver in
                                 driverRow(driver)
                             }
                         }
                     }
                 }
-                
                 .searchable(text: $viewModel.searchText)
             }
         }

@@ -16,34 +16,19 @@ class SeasonDriversViewModel: ObservableObject {
     @Published var state: ViewState<[Driver]> = .idle
     
     private var drivers: [Driver] {
-        if case .loaded(let drivers) = state { return drivers }
+        if case .loaded(let drivers) = state {
+            return drivers.filter { $0.nationality != nil }
+        }
         return []
     }
     
-    private var regularDrivers: [Driver] {
-        drivers.filter { $0.nationality != nil }
-    }
-    
-    private var guestDrivers: [Driver] {
-        drivers.filter { $0.nationality == nil }
-    }
-    
-    var filteredRegularDrivers: [Driver] {
-        if searchText.isEmpty { return regularDrivers }
+    var filteredDrivers: [Driver] {
+        if searchText.isEmpty { return drivers }
         let query = searchText.lowercased()
-        return regularDrivers.filter {
+        return drivers.filter {
             $0.givenName.lowercased().contains(query)
             || $0.familyName.lowercased().contains(query)
             || ($0.nationality?.lowercased().contains(query) ?? false)
-        }
-    }
-    
-    var filteredGuestDrivers: [Driver] {
-        if searchText.isEmpty { return guestDrivers }
-        let query = searchText.lowercased()
-        return guestDrivers.filter {
-            $0.givenName.lowercased().contains(query)
-            || $0.familyName.lowercased().contains(query)
         }
     }
     

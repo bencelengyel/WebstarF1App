@@ -19,8 +19,14 @@ struct DriverProfileView: View {
             switch viewModel.state {
             case .idle, .loading:
                 ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 200)
             case .error(let message):
-                Text(message)
+                VStack {
+                    Image(systemName: "photo.fill")
+                    Text(message)
+                }
+                .frame(maxWidth: .infinity, minHeight: 200)
+                .foregroundColor(.secondary)
             case .empty:
                 Image(systemName: "person.fill")
                     .font(.system(size: 60))
@@ -54,6 +60,7 @@ struct DriverProfileView: View {
             if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
             Spacer()
             
-        }.task { await viewModel.fetchDriverImage() }
+        }
+        .task { await viewModel.fetchDriverImage() }
     }
 }
