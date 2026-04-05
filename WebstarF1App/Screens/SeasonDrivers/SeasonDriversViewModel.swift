@@ -12,6 +12,14 @@ import Combine
 class SeasonDriversViewModel: ObservableObject {
     private let apiService = F1APIService()
     
+    @Published var searchText: String = ""
+    @Published var state: ViewState<[Driver]> = .idle
+    
+    private var drivers: [Driver] {
+        if case .loaded(let drivers) = state { return drivers }
+        return []
+    }
+    
     private var regularDrivers: [Driver] {
         drivers.filter { $0.nationality != nil }
     }
@@ -39,12 +47,6 @@ class SeasonDriversViewModel: ObservableObject {
         }
     }
     
-    @Published var drivers: [Driver] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String? = nil
-    @Published var searchText: String = ""
-    
-    
     var nationalityCounts: [(String, Int)] {
         Dictionary(grouping: drivers.compactMap(\.nationality), by: { $0 })
             .mapValues { $0.count }
@@ -52,15 +54,14 @@ class SeasonDriversViewModel: ObservableObject {
             .map { ($0.key, $0.value) }
     }
     
-    func fetchDrivers(from season: Season) async {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
+    func fetchDrivers(for season: Season) async {
+        state = .loading
         
         do {
-            drivers = try await apiService.fetchDrivers(from: season.year)
+            let result = try await apiService.fetchDrivers(for: season.year)
+            state = result.isEmpty ? .empty : .loaded(result)
         } catch {
-            errorMessage = error.localizedDescription
+            state = .error(error.localizedDescription)
         }
     }
 }

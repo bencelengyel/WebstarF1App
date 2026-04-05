@@ -16,15 +16,25 @@ struct DriverProfileView: View {
     
     var body: some View {
         VStack (alignment: .leading, spacing: 12){
-            AsyncImage(url: viewModel.driverImage) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
+            switch viewModel.state {
+            case .idle, .loading:
                 ProgressView()
-            }.task {
-                await viewModel.fetchDriverImage()
+            case .error(let message):
+                Text(message)
+            case .empty:
+                Image(systemName: "person.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.gray.opacity(0.4))
+                    .frame(maxWidth: .infinity, minHeight: 200)
+                    .background(Color.gray.opacity(0.1))
+            case .loaded(let url):
+                AsyncImage(url: url) { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    ProgressView()
+                }
             }
+            
             HStack (alignment: .top, spacing: 0){
                 Text("\(viewModel.driver.givenName) \(viewModel.driver.familyName)")
                 if let code = viewModel.driver.code { Text("- \(code)")}
@@ -43,6 +53,7 @@ struct DriverProfileView: View {
             if let number = viewModel.driver.racingNumber { Text("Number: \(number)") }
             if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
             Spacer()
-        }
+            
+        }.task { await viewModel.fetchDriverImage() }
     }
 }

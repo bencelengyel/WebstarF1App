@@ -9,21 +9,18 @@ import Combine
 
 @MainActor
 class SeasonsViewModel: ObservableObject {
-    @Published var seasons: [Season] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String? = nil
+    @Published var state: ViewState<[Season]> = .idle
     
     private let apiService = F1APIService()
     
     func fetchSeasons() async {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
+        state = .loading
         
         do {
-            seasons = try await apiService.fetchSeasons().reversed()
+            let result = try await apiService.fetchSeasons().reversed()
+            state = result.isEmpty ? .empty : .loaded(Array(result))
         } catch {
-            errorMessage = error.localizedDescription
+            state = .error(error.localizedDescription)
         }
     }
 }

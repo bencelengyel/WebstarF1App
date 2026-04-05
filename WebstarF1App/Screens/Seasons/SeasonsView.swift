@@ -13,12 +13,16 @@ struct SeasonsView: View {
     
     var body: some View {
         NavigationStack{
-            if viewModel.isLoading {
+            switch viewModel.state {
+            case .idle, .loading:
                 ProgressView()
-            } else if let error = viewModel.errorMessage {
-                Text(error)
-            } else {
-                List(viewModel.seasons) { season in
+            case .error(let message):
+                ErrorView(message: message,
+                          onRetry: { Task { await viewModel.fetchSeasons() }})
+            case .empty:
+                Text("No seasons available")
+            case .loaded(let seasons):
+                List(seasons) { season in
                     NavigationLink(value: season) {
                         HStack {
                             Text(season.year)
@@ -34,13 +38,14 @@ struct SeasonsView: View {
                             .buttonStyle(.borderless)
                         }
                     }
-                }.navigationDestination(for: Season.self, destination: { season in
+                }
+                .navigationTitle("Seasons")
+                .navigationDestination(for: Season.self, destination: { season in
                     SeasonDriversView(season: season)
                 })
             }
         }
         .task { await viewModel.fetchSeasons() }
-        .navigationTitle("Seasons")
         
     }
 }

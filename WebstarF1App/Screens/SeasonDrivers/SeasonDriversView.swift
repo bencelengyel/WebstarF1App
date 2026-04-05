@@ -13,42 +13,54 @@ struct SeasonDriversView: View {
     let season: Season
     
     var body: some View {
-        List {
-            if viewModel.searchText.isEmpty {
-                Section("Nationalities") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
-                        ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
-                            Text("\(NationalityFlags.flag(for: nationality)) \(count)")
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.gray.opacity(0.15))
-                                .cornerRadius(16)
+        Group {
+            switch viewModel.state {
+            case .idle, .loading:
+                ProgressView()
+            case .error(let message):
+                ErrorView(message: message, onRetry: { Task { await viewModel.fetchDrivers(for: season) } })
+            case .empty:
+                Text("No drivers available")
+            case .loaded:
+                List {
+                    if viewModel.searchText.isEmpty {
+                        Section("Nationalities") {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
+                                ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                                    Text("\(NationalityFlags.flag(for: nationality)) \(count)")
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.gray.opacity(0.15))
+                                        .cornerRadius(16)
+                                }
+                            }
+                        }
+                    }
+                    if !viewModel.filteredRegularDrivers.isEmpty {
+                        Section("Drivers") {
+                            ForEach(viewModel.filteredRegularDrivers) { driver in
+                                driverRow(driver)
+                            }
+                        }
+                    }
+                    
+                    if !viewModel.filteredGuestDrivers.isEmpty {
+                        Section("Guest Drivers") {
+                            ForEach(viewModel.filteredGuestDrivers) { driver in
+                                driverRow(driver)
+                            }
                         }
                     }
                 }
-            }
-            if !viewModel.filteredRegularDrivers.isEmpty {
-                Section("Drivers") {
-                    ForEach(viewModel.filteredRegularDrivers) { driver in
-                        driverRow(driver)
-                    }
-                }
-            }
-            
-            if !viewModel.filteredGuestDrivers.isEmpty {
-                Section("Guest Drivers") {
-                    ForEach(viewModel.filteredGuestDrivers) { driver in
-                        driverRow(driver)
-                    }
-                }
+                
+                .searchable(text: $viewModel.searchText)
             }
         }
-        .task { await viewModel.fetchDrivers(from: season) }
+        .task { await viewModel.fetchDrivers(for: season) }
         .navigationTitle("\(season.year) season")
         .navigationDestination(for: Driver.self, destination: { driver in
             DriverProfileView(driver: driver)
         })
-        .searchable(text: $viewModel.searchText)
     }
     
     private func driverRow(_ driver: Driver) -> some View {
@@ -63,9 +75,7 @@ struct SeasonDriversView: View {
                 Spacer()
                 if let urlString = driver.url, let url = URL(string: urlString) {
                     Button(action: {
-                        
                         openURL(url)
-                        
                     }, label: {
                         Image(systemName: "info.circle")
                     })

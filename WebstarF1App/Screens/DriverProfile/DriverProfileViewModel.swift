@@ -11,26 +11,28 @@ import Combine
 @MainActor
 class DriverProfileViewModel: ObservableObject {
     private let imageService = ImageSearchService()
-
-    @Published var isLoading = false
-    @Published var errorMessage: String? = nil
-    @Published var driverImage: URL? = nil
-
+    
+    @Published var state: ViewState<URL> = .idle
+    
+    
     let driver: Driver
     
     init(driver: Driver) {
         self.driver = driver
     }
+
     
     func fetchDriverImage() async  {
-        isLoading = true
-        errorMessage = nil
-        defer { isLoading = false }
+        state = .loading
         
         do {
-            driverImage = try await imageService.fetchImageURL(for: "\(driver.givenName)_\(driver.familyName)_F1")
+            if let url = try await imageService.fetchImageURL(for: "\(driver.givenName)_\(driver.familyName)_F1") {
+                state = .loaded(url)
+            } else {
+                state = .empty
+            }
         } catch {
-            errorMessage = error.localizedDescription
+            state = .error(error.localizedDescription)
         }
     }
 }
