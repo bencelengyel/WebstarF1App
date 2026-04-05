@@ -16,11 +16,10 @@ struct SeasonsView: View {
             switch viewModel.state {
             case .idle, .loading:
                 ProgressView()
-            case .error(let message):
-                ErrorView(message: message,
-                          onRetry: { Task { await viewModel.fetchSeasons() }})
+            case .error:
+                ErrorView(message: "Something went wrong", onRetry: { Task { await viewModel.fetchSeasons() }})
             case .empty:
-                Text("No seasons available")
+                Text("Couldn't load seasons")
             case .loaded(let seasons):
                 List(seasons) { season in
                     NavigationLink(value: season) {
@@ -46,7 +45,6 @@ struct SeasonsView: View {
             }
         }
         .task { await viewModel.fetchSeasons() }
-        
     }
 }
 

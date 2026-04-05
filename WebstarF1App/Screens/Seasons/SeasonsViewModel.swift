@@ -20,7 +20,9 @@ class SeasonsViewModel: ObservableObject {
             let result = try await apiService.fetchSeasons().reversed()
             state = result.isEmpty ? .empty : .loaded(Array(result))
         } catch {
-            state = .error(error.localizedDescription)
+            let message = error.localizedDescription
+            state = .error(message)
+            print("Error while fetching seasons:" + message)
         }
     }
 }

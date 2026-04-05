@@ -17,10 +17,10 @@ struct SeasonDriversView: View {
             switch viewModel.state {
             case .idle, .loading:
                 ProgressView()
-            case .error(let message):
-                ErrorView(message: message, onRetry: { Task { await viewModel.fetchDrivers(for: season) } })
+            case .error:
+                ErrorView(message: "Something went wrong", onRetry: { Task { await viewModel.fetchDrivers(for: season) } })
             case .empty:
-                Text("No drivers found")
+                Text("Couldn't load any drivers for this season")
             case .loaded:
                 List {
                     if viewModel.searchText.isEmpty {

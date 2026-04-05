@@ -32,7 +32,9 @@ class DriverProfileViewModel: ObservableObject {
                 state = .empty
             }
         } catch {
-            state = .error(error.localizedDescription)
+            let message = error.localizedDescription
+            state = .error(message)
+            print("Error while fetching driver image:" + message)
         }
     }
 }

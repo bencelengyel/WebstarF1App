@@ -20,18 +20,11 @@ struct DriverProfileView: View {
             case .idle, .loading:
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 200)
-            case .error(let message):
-                VStack {
-                    Image(systemName: "photo.fill")
-                    Text(message)
-                }
-                .frame(maxWidth: .infinity, minHeight: 200)
-                .foregroundColor(.secondary)
-            case .empty:
+            case .error, .empty:
                 VStack {
                     Image(systemName: "person.fill")
                         .font(.system(size: 60))
-                    Text("No image")
+                    Text("Couldn't load image")
                 }
                 .foregroundColor(.gray.opacity(0.4))
                 .frame(maxWidth: .infinity, minHeight: 200)

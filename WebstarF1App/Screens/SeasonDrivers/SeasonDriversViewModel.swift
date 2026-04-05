@@ -46,7 +46,9 @@ class SeasonDriversViewModel: ObservableObject {
             let result = try await apiService.fetchDrivers(for: season.year)
             state = result.isEmpty ? .empty : .loaded(result)
         } catch {
-            state = .error(error.localizedDescription)
+            let message = error.localizedDescription
+            state = .error(message)
+            print("Error while fetching drivers for \(season.year) season:" + message)
         }
     }
 }
