@@ -52,13 +52,13 @@ class SeasonDriversViewModel: ObservableObject {
             .map { ($0.key, $0.value) }
     }
     
-    func fetchSeasonDrivers(season: Season) async {
+    func fetchDrivers(from season: Season) async {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
         
         do {
-            drivers = try await apiService.fetchDrivers(year: season.year)
+            drivers = try await apiService.fetchDrivers(from: season.year)
         } catch {
             errorMessage = error.localizedDescription
         }

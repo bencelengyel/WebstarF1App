@@ -43,13 +43,14 @@ struct SeasonDriversView: View {
                 }
             }
         }
-        .task { await viewModel.fetchSeasonDrivers(season: season) }
+        .task { await viewModel.fetchDrivers(from: season) }
         .navigationTitle("\(season.year) season")
         .navigationDestination(for: Driver.self, destination: { driver in
             DriverProfileView(driver: driver)
         })
         .searchable(text: $viewModel.searchText)
     }
+    
     private func driverRow(_ driver: Driver) -> some View {
         NavigationLink(value: driver) {
             HStack {
@@ -73,8 +74,4 @@ struct SeasonDriversView: View {
             }
         }
     }
-}
-
-#Preview {
-    SeasonDriversView(season: Season(year: "2019", url: "https://en.wikipedia.org/wiki/2019_Formula_One_World_Championship"))
 }
