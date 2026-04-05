@@ -61,28 +61,29 @@ Alternatives considered:
 
 ## Decision 5: Project Structure
 
-**Chosen: Group by screen, with shared components in Core**
+**Chosen: Group by screen, with shared code in Core**
 
 ```
-F1App/
-├── App/                  # App entry point, root NavigationStack
+DECISIONS.md
+WebstarF1App/
+├── App/                      # App entry point
 ├── Core/
-│   ├── Networking/       # Shared API service
-│   ├── Models/           # Shared Codable structs
-│   ├── Components/       # Reusable UI (ErrorView, LoadingView)
-│   └── Shared/           # Helpers (ViewState, DateFormatting, NationalityFlags)
+│   ├── Helpers/              # Shared types and utilities (ViewState, DateFormatting, NationalityFlags)
+│   ├── Models/               # Shared Codable structs (Season, Driver, ImageSearchResponse)
+│   ├── Networking/           # API services (F1APIService, ImageSearchService)
+│   └── SharedViews/          # Reusable UI components (ErrorView)
 ├── Screens/
-│   ├── Seasons/          # SeasonsView + SeasonsViewModel
-│   ├── Drivers/          # SeasonDriversView + SeasonDriversViewModel
-│   └── DriverProfile/    # DriverProfileView + DriverProfileViewModel
-└── Resources/            # Assets
+│   ├── Seasons/              # SeasonsView + SeasonsViewModel
+│   ├── SeasonDrivers/        # SeasonDriversView + SeasonDriversViewModel
+│   └── DriverProfile/        # DriverProfileView + DriverProfileViewModel
+└── Assets.xcassets/          # App icons, colors
 ```
 
-Originally named `Features/`, renamed to `Screens/` because the folders map 1:1 to screens, not to features in the product sense. The name should describe what the folders *are*, not what they *aspire to be*.
+Originally named `Features/`, renamed to `Screens/` because the folders map 1:1 to screens, not to features in the product sense. The name should describe what the folders *are*.
 
-`Core/Components/` holds UI components that serve multiple screens (e.g., `ErrorView`, `LoadingView`). The rule: things that serve one screen live with that screen. Things that serve the whole app get their own home in Core.
+`Core/SharedViews/` holds UI components that serve multiple screens (e.g., `ErrorView`). `CachedAsyncImage` will also live here once image caching is implemented. The rule: things that serve one screen live with that screen. Things that serve the whole app get their own home in Core.
 
-`Core/Shared/` holds types and helpers used across the app (e.g., `ViewState` enum, `DateFormatting`, `NationalityFlags`). Originally named `Extensions/`, renamed because these aren't Swift extensions — they're standalone types and utilities. The name should describe *what they are*, not the Swift mechanism.
+`Core/Helpers/` holds types and utilities used across the app — `ViewState` enum, `DateFormatting`, `NationalityFlags`. Originally named `Extensions/`, renamed because these aren't Swift extensions — they're standalone types and utilities.
 
 Alternatives considered:
 - **Group by type (Models/, Views/, ViewModels/):** Simpler mental model for finding files by role, but requires jumping across multiple folders to work on a single feature. Scales poorly.
@@ -175,9 +176,11 @@ Alternatives considered:
 
 ## Decision 10: Error Message Strategy
 
-**Chosen: User-friendly messages, not raw error strings**
+**Chosen: User-friendly messages for full-screen errors; raw messages acceptable for non-critical failures**
 
-`error.localizedDescription` produces messages like "A server with the specified hostname could not be found" — technically accurate but meaningless to a non-technical user. Error messages shown to users are written in plain language (e.g., "Couldn't load seasons. Check your connection and try again."). Technical error details can be logged via `print()` for debugging but are never displayed in the UI.
+Full-screen error states (SeasonsView, SeasonDriversView) use the reusable `ErrorView` component. These should show user-friendly messages rather than raw `error.localizedDescription` output, since the user's only action is "retry" and technical details don't help.
+
+Non-critical errors (e.g., a failed image fetch in DriverProfileView where the rest of the screen still works) currently pass `error.localizedDescription` directly. This is a known rough edge — these should also be simplified to something like "Image unavailable."
 
 No distinction is made between error *types* in the UI (network failure vs. server error vs. bad data). The user's only available action in all cases is "retry" or "try again later," so differentiating adds complexity without helping the user do anything differently.
 
@@ -195,13 +198,15 @@ This means `ViewState<URL>` in the DriverProfileViewModel describes the image li
 
 ---
 
-## Decision 12: Reusable UI Components
+## Decision 12: Reusable Error Handling
 
-**Chosen: Shared `ErrorView` and `LoadingView` components with action injection**
+**Chosen: Shared `ErrorView` component with action injection**
 
-`ErrorView` takes a `message: String` and `onRetry: () -> Void`. The retry closure is provided by the caller, not hardcoded — this allows one component to serve all three screens without knowing what function to call. The caller wraps its specific async retry function in a `Task { }` closure to bridge from the synchronous `() -> Void` signature to async ViewModel methods.
+`ErrorView` takes a `message: String` and `onRetry: () -> Void`. The retry closure is provided by the caller, not hardcoded — this allows one component to serve all screens without knowing what function to call. The caller wraps its specific async retry function in a `Task { }` closure to bridge from the synchronous `() -> Void` signature to async ViewModel methods.
 
-`LoadingView` wraps a `ProgressView` with consistent sizing. Both live in `Core/Components/`.
+Loading states use SwiftUI's built-in `ProgressView()` directly rather than a custom wrapper, since no additional customization beyond frame sizing is needed. If loading states grow more complex (e.g., skeleton screens, progress percentages), a shared component would be warranted.
+
+`ErrorView` lives in `Core/SharedViews/`.
 
 This pattern — a component that defines the *shape* of an interaction while the caller fills in the *specifics* — is reused across the app (e.g., `.navigationDestination` closures, ForEach with key paths).
 
@@ -228,10 +233,10 @@ This means four levels of nesting before reaching actual data. Swift model struc
 ### Endpoints
 
 - `GET /seasons?limit=100` — list of all F1 seasons
-- `GET /{year}/drivers` — drivers in a specific season
-- `GET /drivers/{driverId}` — single driver details
+- `GET /{year}/drivers?limit=100` — drivers in a specific season
+- `GET /drivers/{driverId}` — single driver details (not currently used — driver data is passed via navigation)
 
-Endpoints 2 and 3 return **the same Driver object structure** (driverId, permanentNumber, code, url, givenName, familyName, dateOfBirth, nationality). One `Driver` struct covers both. The detail endpoint does not provide additional fields beyond what the season driver list already contains. This means the Driver Detail screen receives a `Driver` object passed from the list screen via navigation — no additional fetch needed for driver data. Only the profile image requires a separate network call (to Google Image Search).
+Endpoints 2 and 3 return **the same Driver object structure** (driverId, permanentNumber, code, url, givenName, familyName, dateOfBirth, nationality). One `Driver` struct covers both. The detail endpoint does not provide additional fields beyond what the season driver list already contains. This means the Driver Detail screen receives a `Driver` object passed from the list screen via navigation — no additional fetch needed for driver data. Only the profile image requires a separate network call (to Google Custom Search API).
 
 ### Pagination
 
@@ -240,7 +245,9 @@ The API paginates with `limit` and `offset` parameters. Default limit is 30.
 - Seasons: `total: 77`, default returns only 30 (1950–1979). Missing 47 seasons without explicit limit.
 - Drivers per season: varies (e.g., `total: 20` for 2019, `total: 105` for 1952, `total: 36` for 2025).
 
-**Current approach:** `?limit=100` on the seasons endpoint to fetch all results in one request.
+**Current approach:** `?limit=100` on both the seasons and drivers endpoints to fetch all results in one request.
+
+**Known limitation:** 1952 has 105 drivers, exceeding the current `limit=100`. A future pagination implementation would resolve this.
 
 **Future enhancement:** "Load more" button or infinite scroll when reaching the bottom of the list. This would mean managing offset state, appending to existing arrays, detecting whether more data exists, and preventing duplicate fetches. Deferred until core functionality is complete — the UX benefit is real, but the implementation adds meaningful complexity that shouldn't block the three core screens.
 
