@@ -28,7 +28,7 @@ class DriverProfileViewModel: ObservableObject {
         defer { isLoading = false }
         
         do {
-            driverImage = try await imageService.fetchImageURL(query: "\(driver.givenName)_\(driver.familyName)_F1")
+            driverImage = try await imageService.fetchImageURL(for: "\(driver.givenName)_\(driver.familyName)_F1")
         } catch {
             errorMessage = error.localizedDescription
         }
