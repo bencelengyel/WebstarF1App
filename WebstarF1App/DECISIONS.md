@@ -1,6 +1,6 @@
 # Architecture Decisions — F1 Seasons App
 
-Decisions made before writing any code. This document exists so that any developer joining the project understands *why* things are built the way they are, not just *how*.
+Decisions made before writing any code, updated as the project evolves. This document exists so that any developer joining the project understands *why* things are built the way they are, not just *how*.
 
 ---
 
@@ -20,9 +20,9 @@ Alternatives considered:
 
 **Chosen: Inline first, then extract into a shared API Service**
 
-Phase 1: Network calls are written directly in each ViewModel using `URLSession`. This is intentional — to deeply understand the mechanics of HTTP requests, JSON decoding, headers, and async/await before abstracting.
+Phase 1: Network calls were written directly in each ViewModel using `URLSession`. This was intentional — to deeply understand the mechanics of HTTP requests, JSON decoding, headers, and async/await before abstracting.
 
-Phase 2: Once patterns emerge from repetition (URL construction, header setup, error handling, JSON decoding), the shared logic will be extracted into a single `F1APIService` that all ViewModels use.
+Phase 2 (completed): Once patterns emerged from repetition (URL construction, header setup, error handling, JSON decoding), the shared logic was extracted into a single `F1APIService` that all ViewModels use. The service exposes a generic `fetch<T: Decodable>` function that handles URL construction, header injection, and JSON decoding for any `Decodable` type. Specific endpoints (`fetchSeasons()`, `fetchDrivers(for:)`) build the URL and call the generic function — separating the *tool* (generic fetch) from the *decisions about how to use it* (specific endpoints).
 
 Alternatives considered:
 - **Shared API Service from the start:** Cleaner, but risks building an abstraction without understanding what it abstracts.
@@ -34,7 +34,7 @@ Alternatives considered:
 
 **Chosen: Single set of Codable structs used by both networking and Views**
 
-API responses are decoded directly into structs (e.g., `Season`, `Driver`) that Views also use to render data. `CodingKeys` are used where API field names don't match Swift conventions.
+API responses are decoded directly into structs (e.g., `Season`, `Driver`) that Views also use to render data. `CodingKeys` are used where API field names don't match Swift conventions — for example, renaming `driverId` to `id`. When a `CodingKeys` enum is defined, *all* decoded properties must be listed as cases (even unchanged ones), because defining the enum disables Swift's auto-generated mappings.
 
 No separate "domain model" layer at this stage. The app has 3 screens and 3 API calls — the overhead of a mapping layer is not justified.
 
@@ -45,36 +45,44 @@ Alternatives considered:
 
 ## Decision 4: Navigation
 
-**Chosen: NavigationStack with NavigationLink**
+**Chosen: Type-based NavigationStack with value-passing NavigationLinks**
 
-The app has a linear 3-screen flow (Seasons → Drivers → Driver Detail) plus external links to Wikipedia. `NavigationStack` handles this natively with built-in back-button support and type-safe navigation via `navigationDestination(for:)`.
+The app has a linear 3-screen flow (Seasons → Drivers → Driver Detail) plus external links to Wikipedia. `NavigationStack` handles this with type-safe, data-driven navigation via `NavigationLink(value:)` and `.navigationDestination(for:)`.
 
-Wikipedia links are opened using `@Environment(\.openURL)` or `SFSafariViewController` for in-app browsing.
+This approach separates *intent* from *construction*: the NavigationLink declares "here's a value" and drops it onto the navigation stack. The `.navigationDestination(for: Type.self)` handler — registered separately — watches for that type and builds the appropriate view. The link and the destination are connected only by the *type* of the value, not by direct view references. This makes the navigation stack a plain array of values that can be programmatically manipulated for deep-linking, popping, or resetting.
+
+Wikipedia links are opened using `@Environment(\.openURL)`.
 
 Alternatives considered:
+- **Old-style NavigationLink(destination:):** Glues each link to a specific view. Works for 3 screens, but doesn't support programmatic navigation or deep-linking. Less composable.
 - **Coordinator pattern:** Common in UIKit, offers full navigation control. Significant complexity overhead for a 3-screen linear flow. Not natural in SwiftUI.
 
 ---
 
 ## Decision 5: Project Structure
 
-**Chosen: Group by feature**
+**Chosen: Group by screen, with shared components in Core**
 
 ```
 F1App/
 ├── App/                  # App entry point, root NavigationStack
 ├── Core/
-│   ├── Networking/       # Shared API service (Phase 2)
+│   ├── Networking/       # Shared API service
 │   ├── Models/           # Shared Codable structs
-│   └── Extensions/       # Helpers (date formatting, etc.)
-├── Features/
+│   ├── Components/       # Reusable UI (ErrorView, LoadingView)
+│   └── Shared/           # Helpers (ViewState, DateFormatting, NationalityFlags)
+├── Screens/
 │   ├── Seasons/          # SeasonsView + SeasonsViewModel
-│   ├── Drivers/          # DriversView + DriversViewModel
-│   └── DriverDetail/     # DriverDetailView + DriverDetailViewModel
-└── Resources/            # Assets, nationality-to-flag mappings
+│   ├── Drivers/          # SeasonDriversView + SeasonDriversViewModel
+│   └── DriverProfile/    # DriverProfileView + DriverProfileViewModel
+└── Resources/            # Assets
 ```
 
-Each feature folder contains everything needed to understand that screen. Shared code (models, networking, utilities) lives in `Core/`.
+Originally named `Features/`, renamed to `Screens/` because the folders map 1:1 to screens, not to features in the product sense. The name should describe what the folders *are*, not what they *aspire to be*.
+
+`Core/Components/` holds UI components that serve multiple screens (e.g., `ErrorView`, `LoadingView`). The rule: things that serve one screen live with that screen. Things that serve the whole app get their own home in Core.
+
+`Core/Shared/` holds types and helpers used across the app (e.g., `ViewState` enum, `DateFormatting`, `NationalityFlags`). Originally named `Extensions/`, renamed because these aren't Swift extensions — they're standalone types and utilities. The name should describe *what they are*, not the Swift mechanism.
 
 Alternatives considered:
 - **Group by type (Models/, Views/, ViewModels/):** Simpler mental model for finding files by role, but requires jumping across multiple folders to work on a single feature. Scales poorly.
@@ -83,17 +91,30 @@ Alternatives considered:
 
 ## Decision 6: State Management
 
-**Chosen: Optionals and booleans**
+**Chosen: Generic `ViewState<T>` enum with associated values**
 
-Each ViewModel uses explicit `@Published` properties:
-- `isLoading: Bool`
-- `errorMessage: String?`
-- `seasons: [Season]` (or equivalent data array)
+Originally used separate `@Published` properties (`isLoading: Bool`, `errorMessage: String?`, data array). Refactored to a single enum after encountering the exact problem predicted: independent properties can represent impossible states (e.g., `isLoading = true` while `errorMessage` contains stale text from a previous failure).
 
-Known trade-off: These properties can theoretically fall out of sync (e.g., `isLoading` still true after an error is set). Careful management in the ViewModel is required.
+```swift
+enum ViewState<T> {
+    case idle
+    case loading
+    case error(String)
+    case empty
+    case loaded(T)
+}
+```
+
+Each ViewModel now has a single `@Published var state: ViewState<T>` property. The generic parameter `T` varies by screen: `ViewState<[Season]>` for seasons, `ViewState<[Driver]>` for drivers, `ViewState<URL>` for the driver image. Views consume state via a `switch` statement, which the compiler enforces — every state must be handled.
+
+Key details:
+- `idle` exists because there is a real moment before `.task` fires where the screen has no state. It's not loading, not errored, not empty — it simply hasn't started yet.
+- `idle` and `loading` render identically (a `ProgressView`) but are semantically distinct.
+- Data that was previously stored as a separate `@Published` property alongside the enum (e.g., a `seasons` array) is now stored *inside* the `.loaded` case. Keeping both would reintroduce the sync problem the enum was designed to solve.
+- ViewModels that need to reference the loaded data in computed properties (e.g., for filtering or nationality counts) use a private computed property that extracts it: `if case .loaded(let data) = state { return data } else { return [] }`.
 
 Alternatives considered:
-- **Single ViewState enum with associated values:** Eliminates contradictory states entirely. More expressive, but requires comfort with Swift enum associated values. Flagged as a potential refactor once the app is working.
+- **Optionals and booleans (original approach):** Simpler to start, but allows contradictory states. Refactored away after the pattern proved fragile.
 
 ---
 
@@ -105,7 +126,7 @@ Each logical piece of work (networking layer, each screen, bonus features) is de
 
 Branch naming convention: `feature/<description>` (e.g., `feature/seasons-screen`, `feature/networking-abstraction`)
 
-Commit messages: Present-tense, descriptive (e.g., "Add seasons list view with API integration")
+Commit messages: Present-tense, descriptive (e.g., "Add seasons list view with API integration"). Each commit represents one logical change — not "did x AND y AND z."
 
 Alternatives considered:
 - **All work on main:** Simpler, but doesn't reflect team workflows and makes rollback difficult.
@@ -131,12 +152,68 @@ Alternatives considered:
 
 ---
 
+## Decision 9: Data Filtering — Sparse Driver Entries
+
+**Chosen: Filter out drivers where `nationality == nil`**
+
+The Ergast API returns two kinds of driver records. Full records have `driverId`, `givenName`, `familyName`, `dateOfBirth`, `nationality`, `url`, and optionally `permanentNumber` and `code`. Sparse records have *only* `driverId`, `givenName`, and `familyName` — everything else is missing. These appear to be reserve/test drivers rather than race participants.
+
+This was verified by inspecting driver data across multiple seasons (1952, 1968, 1975, 1994, 2004, 2020, 2025). In all seasons from 1950 through 2024, every driver has `dateOfBirth`, `nationality`, and `url`. Sparse entries only appear in the 2025 season (e.g., Paul Aron, Dino Beganovic, Luke Browning).
+
+`nationality` was chosen as the filter property because the app's nationality summary feature depends on it — a driver without nationality can't participate in that aggregation. The filter serves double duty: cleaning the data *and* protecting a feature.
+
+The filter lives in a single computed property on the ViewModel (`private var drivers`) so it applies once at the source. All downstream computed properties (filtering, nationality counts) work with already-clean data.
+
+Originally considered a separate "Guest Drivers" section with its own UI treatment. Dropped because the distinction added UI complexity without meaningful value to the user — it's trivia, not useful information.
+
+Alternatives considered:
+- **Separate "Guest Drivers" section:** More complete representation of the data, but adds a Section, a second ForEach, and duplicate filtering logic for marginal user value.
+- **Filter by `racingNumber != nil`:** Would exclude legitimate pre-2014 drivers who raced without permanent numbers. Incorrect signal.
+- **Filter by `dateOfBirth != nil`:** Also valid — every real driver in the dataset has a birth date. But `nationality` better serves the app's features.
+
+---
+
+## Decision 10: Error Message Strategy
+
+**Chosen: User-friendly messages, not raw error strings**
+
+`error.localizedDescription` produces messages like "A server with the specified hostname could not be found" — technically accurate but meaningless to a non-technical user. Error messages shown to users are written in plain language (e.g., "Couldn't load seasons. Check your connection and try again."). Technical error details can be logged via `print()` for debugging but are never displayed in the UI.
+
+No distinction is made between error *types* in the UI (network failure vs. server error vs. bad data). The user's only available action in all cases is "retry" or "try again later," so differentiating adds complexity without helping the user do anything differently.
+
+---
+
+## Decision 11: Partial vs. Full Screen State Ownership
+
+**Chosen: ViewState scope matches the async dependency, not the whole screen**
+
+In SeasonsView and SeasonDriversView, the *entire* screen content depends on the network fetch. No data = nothing to show. The `switch` on `viewModel.state` replaces the whole view body.
+
+In DriverProfileView, the driver's info (name, nationality, number, date of birth) is already in hand — passed from the previous screen. Only the image is async. The `switch` on `viewModel.state` is scoped to *just the image area* of the layout. Driver info renders immediately and unconditionally, regardless of image state.
+
+This means `ViewState<URL>` in the DriverProfileViewModel describes the image lifecycle, not the screen lifecycle. The same enum serves a narrower scope. The generic type parameter (`URL` vs `[Season]` vs `[Driver]`) already communicates what's being tracked.
+
+---
+
+## Decision 12: Reusable UI Components
+
+**Chosen: Shared `ErrorView` and `LoadingView` components with action injection**
+
+`ErrorView` takes a `message: String` and `onRetry: () -> Void`. The retry closure is provided by the caller, not hardcoded — this allows one component to serve all three screens without knowing what function to call. The caller wraps its specific async retry function in a `Task { }` closure to bridge from the synchronous `() -> Void` signature to async ViewModel methods.
+
+`LoadingView` wraps a `ProgressView` with consistent sizing. Both live in `Core/Components/`.
+
+This pattern — a component that defines the *shape* of an interaction while the caller fills in the *specifics* — is reused across the app (e.g., `.navigationDestination` closures, ForEach with key paths).
+
+---
+
 ## API Notes
 
 ### Base URL & Headers
 
 - Base URL: `https://api.jolpi.ca/ergast/f1/`
 - All requests must include header: `Content-Type: application/json` (required by spec, even though the API responds with JSON regardless — the spec is testing that we know how to set HTTP headers on requests from code).
+- Note: `URLSession` caches API responses by default using HTTP caching headers. This is good for production (faster, more resilient) but can mask network errors during testing. To test error states, clear the simulator cache or modify the URL to bypass the cache.
 
 ### Response Structure
 
@@ -154,14 +231,14 @@ This means four levels of nesting before reaching actual data. Swift model struc
 - `GET /{year}/drivers` — drivers in a specific season
 - `GET /drivers/{driverId}` — single driver details
 
-Endpoints 2 and 3 return **the same Driver object structure** (driverId, permanentNumber, code, url, givenName, familyName, dateOfBirth, nationality). One `Driver` struct covers both. The detail endpoint does not provide additional fields beyond what the season driver list already contains. This means the Driver Detail screen could either receive a `Driver` object passed from the list screen or fetch it independently — both are valid approaches.
+Endpoints 2 and 3 return **the same Driver object structure** (driverId, permanentNumber, code, url, givenName, familyName, dateOfBirth, nationality). One `Driver` struct covers both. The detail endpoint does not provide additional fields beyond what the season driver list already contains. This means the Driver Detail screen receives a `Driver` object passed from the list screen via navigation — no additional fetch needed for driver data. Only the profile image requires a separate network call (to Google Image Search).
 
 ### Pagination
 
 The API paginates with `limit` and `offset` parameters. Default limit is 30.
 
 - Seasons: `total: 77`, default returns only 30 (1950–1979). Missing 47 seasons without explicit limit.
-- Drivers per season: `total: 20` for 2019, fits within default limit of 30.
+- Drivers per season: varies (e.g., `total: 20` for 2019, `total: 105` for 1952, `total: 36` for 2025).
 
 **Current approach:** `?limit=100` on the seasons endpoint to fetch all results in one request.
 
@@ -170,7 +247,10 @@ The API paginates with `limit` and `offset` parameters. Default limit is 30.
 ### Edge Cases
 
 - `permanentNumber` is a **String** in the JSON (e.g., `"77"` not `77`), and is **optional** — drivers active before 2014 may not have one. Must be decoded as `String?` or the app will crash on older season data.
-- The spec requires a fallback display when `permanentNumber` is absent (e.g., "N/A" or an empty string).
+- The spec requires a fallback display when `permanentNumber` is absent (e.g., "N/A" or an empty string). Current approach: conditionally render the number only if present, showing nothing if absent.
+- Some seasons (notably 2025) include sparse driver entries with only `driverId`, `givenName`, and `familyName`. These are filtered out (see Decision 9).
+- `code` is optional and only appears on drivers from roughly the mid-1990s onward.
+- `url` (Wikipedia link) is present on all full driver records but absent on sparse entries.
 
 ---
 
