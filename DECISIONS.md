@@ -121,16 +121,14 @@ Alternatives considered:
 
 ## Decision 7: Git Workflow
 
-**Chosen: Feature branches merged into main**
+**Chosen: Single main branch with descriptive commits**
 
-Each logical piece of work (networking layer, each screen, bonus features) is developed on a dedicated branch and merged into `main` when complete.
+Tried feature branches early on (optimization/networking-code). Dropped the practice after one branch because the overhead wasn't justified — this is a solo project with a linear build order. Creating, switching, and merging branches for every change added friction without the benefit branches exist to provide (parallel work, code review, safe experimentation in a team).
 
-Branch naming convention: `feature/<description>` (e.g., `feature/seasons-screen`, `feature/networking-abstraction`)
-
-Commit messages: Present-tense, descriptive (e.g., "Add seasons list view with API integration"). Each commit represents one logical change — not "did x AND y AND z."
+Commit messages remain present-tense and descriptive (e.g., "Add seasons list view with API integration"). Each commit represents one logical change.
 
 Alternatives considered:
-- **All work on main:** Simpler, but doesn't reflect team workflows and makes rollback difficult.
+- **Feature branches merged into main:** The standard team workflow. Tested once, but the ceremony-to-value ratio was wrong for a single developer on a 3-screen app. Would adopt in a team context where branches protect against conflicting work and enable code review.
 
 ---
 
