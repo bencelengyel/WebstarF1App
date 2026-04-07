@@ -15,11 +15,20 @@ struct DriverProfileView: View {
     }
     
     var body: some View {
-        VStack (alignment: .leading, spacing: 12){
+        DriverCard(for: viewModel.driver)
+            .frame(maxHeight: .infinity, alignment: .center)
+            .background(Color(.systemGroupedBackground))
+            .task { await viewModel.fetchDriverImage() }
+        
+        
+}
+    
+    func DriverCard(for driver: Driver) -> some View {
+        VStack(spacing: 0) {
             switch viewModel.state {
             case .idle, .loading:
                 ProgressView()
-                    .frame(maxWidth: .infinity, minHeight: 200)
+                    .frame(maxWidth: .infinity, minHeight: 250)
             case .error, .empty:
                 VStack {
                     Image(systemName: "person.fill")
@@ -27,37 +36,62 @@ struct DriverProfileView: View {
                     Text("Couldn't load image")
                 }
                 .foregroundColor(.gray.opacity(0.4))
-                .frame(maxWidth: .infinity, minHeight: 200)
+                .frame(maxWidth: .infinity, minHeight: 250)
                 .background(Color.gray.opacity(0.1))
             case .loaded(let url):
                 AsyncImage(url: url) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 250)
+                        .clipped()
                 } placeholder: {
                     ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: 200)
+                        .frame(maxWidth: .infinity, minHeight: 250)
                 }
             }
-            
-            HStack (alignment: .top, spacing: 0){
-                Text("\(viewModel.driver.givenName) \(viewModel.driver.familyName)")
-                if let code = viewModel.driver.code { Text("- \(code)")}
-                Spacer()
-                Button(action: {
-                    if let urlString = viewModel.driver.url, let url = URL(string: urlString) {
-                        openURL(url)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("\(driver.givenName) \(driver.familyName)")
+                        .font(.title.bold())
+                    Spacer()
+                    Button(action: {
+                        if let urlString = driver.url, let url = URL(string: urlString) {
+                            openURL(url)
+                        }
+                    }) {
+                        Image(systemName: "info.circle")
                     }
-                },
-                       label: {
-                    Image(systemName: "info.circle")
-                })
-                .buttonStyle(.borderless)
+                    .buttonStyle(.borderless)
+                    .font(.title2)
+                }
+                HStack {
+                    if let number = driver.racingNumber { Text("#\(number)") }
+                    if let code = driver.code { Text("(\(code))") }
+                }
+                .font(.title3)
+                if let nationality = driver.nationality {
+                    Text("\(NationalityFlags.flag(for: nationality)) \(nationality)")
+                }
+                if let dob = driver.dateOfBirth {
+                    Text("Born \(DateFormatting.format(dob))")
+                }
             }
-            if let nationality = viewModel.driver.nationality { Text("Nationality: \(nationality)") }
-            if let number = viewModel.driver.racingNumber { Text("Number: \(number)") }
-            if let dob = viewModel.driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
-            Spacer()
-            
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white)
         }
-        .task { await viewModel.fetchDriverImage() }
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+        .padding()
+    }
+}
+
+#Preview {
+    let previewDriver = Driver(id: "alonso", racingNumber: "14", code: "ALO", givenName: "Fernando", familyName: "Alonso", dateOfBirth: "1981-07-29", nationality: "Spanish", url: "http://en.wikipedia.org/wiki/Fernando_Alonso")
+    NavigationStack {
+        DriverProfileView(driver: previewDriver)
     }
 }

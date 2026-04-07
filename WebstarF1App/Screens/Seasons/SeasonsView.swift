@@ -28,6 +28,7 @@ struct SeasonsView: View {
                         }
                     }
                 }
+                .background(Color(.systemGroupedBackground))
                 .navigationTitle("F1 Seasons")
                 .navigationDestination(for: Season.self, destination: { season in
                     SeasonDriversView(season: season)
