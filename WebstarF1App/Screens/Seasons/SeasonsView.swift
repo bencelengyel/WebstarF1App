@@ -21,30 +21,53 @@ struct SeasonsView: View {
             case .empty:
                 Text("Couldn't load seasons")
             case .loaded(let seasons):
-                List(seasons) { season in
-                    NavigationLink(value: season) {
-                        HStack {
-                            Text(season.year)
-                            Spacer()
-                            Button(action: {
-                                if let url = URL(string: season.url) {
-                                    openURL(url)
-                                }
-                            },
-                                   label: {
-                                Image(systemName: "info.circle")
-                            })
-                            .buttonStyle(.borderless)
+                ScrollView {
+                    ForEach(seasons) { season in
+                        NavigationLink(value: season) {
+                            SeasonCard(season)
                         }
                     }
                 }
-                .navigationTitle("Seasons")
+                .navigationTitle("F1 Seasons")
                 .navigationDestination(for: Season.self, destination: { season in
                     SeasonDriversView(season: season)
                 })
             }
         }
         .task { await viewModel.fetchSeasons() }
+    }
+    
+    private func SeasonCard(_ season: Season) -> some View {
+        LazyVStack (spacing: 0) {
+            Image(SeasonImage.name(for: season.year))
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+            HStack {
+                Text(season.year)
+                    .font(.title3)
+                    .foregroundStyle(.black)
+                Spacer()
+                Button(action: {
+                    if let url = URL(string: season.url) {
+                        openURL(url)
+                    }
+                },
+                       label: {
+                    Image(systemName: "info.circle")
+                })
+                .buttonStyle(.borderless)
+            }
+            .padding()
+            
+        }
+        .aspectRatio(5/3, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(radius: 4, y: 2)
+        )
+        .padding()
     }
 }
 
