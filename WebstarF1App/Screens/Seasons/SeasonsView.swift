@@ -24,7 +24,7 @@ struct SeasonsView: View {
                 ScrollView {
                     ForEach(seasons) { season in
                         NavigationLink(value: season) {
-                            SeasonCard(season)
+                            SeasonCard(for: season)
                         }
                     }
                 }
@@ -37,7 +37,7 @@ struct SeasonsView: View {
         .task { await viewModel.fetchSeasons() }
     }
     
-    private func SeasonCard(_ season: Season) -> some View {
+    private func SeasonCard(for season: Season) -> some View {
         LazyVStack (spacing: 0) {
             Image(SeasonImage.name(for: season.year))
                 .resizable()

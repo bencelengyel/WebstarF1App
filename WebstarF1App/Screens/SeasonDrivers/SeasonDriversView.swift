@@ -28,12 +28,16 @@ struct SeasonDriversView: View {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
                                 ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
                                     Text("\(NationalityFlags.flag(for: nationality)) \(count)")
-                                        .padding(.horizontal, 12)
+                                        .frame(maxWidth: .infinity)
                                         .padding(.vertical, 6)
-                                        .background(Color.gray.opacity(0.15))
+                                        .background(.white)
                                         .cornerRadius(16)
+                                        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
                                 }
                             }
+                            .padding(.vertical, 4)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                            .listRowBackground(Color(.systemGroupedBackground))
                         }
                     }
                     Section("Drivers") {
@@ -41,7 +45,7 @@ struct SeasonDriversView: View {
                             Text("No drives that match the search criteria")
                         }else {
                             ForEach(viewModel.filteredDrivers) { driver in
-                                driverRow(driver)
+                                DriverRow(for: driver)
                             }
                         }
                     }
@@ -56,14 +60,23 @@ struct SeasonDriversView: View {
         })
     }
     
-    private func driverRow(_ driver: Driver) -> some View {
+    private func DriverRow(for driver: Driver) -> some View {
         NavigationLink(value: driver) {
             HStack {
-                VStack(alignment: .leading) {
-                    Text("\(driver.givenName) \(driver.familyName)")
-                    if let number = driver.racingNumber { Text("Number: \(number)") }
-                    if let nationality = driver.nationality { Text("Nationality: \(nationality)") }
-                    if let dob = driver.dateOfBirth { Text("Date of birth: \(DateFormatting.format(dob))") }
+                HStack {
+                    if viewModel.hasDriverWithNumber {
+                        Text(driver.racingNumber ?? "—")
+                            .font(.title)
+                            .frame(minWidth: 48, alignment: .center)
+                    }
+                    VStack (alignment: .leading) {
+                        HStack {
+                            Text("\(driver.givenName) \(driver.familyName)").font(.headline)
+                            if let nationality = driver.nationality { Text(NationalityFlags.flag(for: nationality)) }
+                        }
+                        if let dob = driver.dateOfBirth { Text("Born " + DateFormatting.format(dob)).font(.footnote) }
+                    }
+                    
                 }
                 Spacer()
                 if let urlString = driver.url, let url = URL(string: urlString) {
@@ -77,4 +90,12 @@ struct SeasonDriversView: View {
             }
         }
     }
+}
+
+#Preview {
+    let previewSeason = Season(year: "2025", url: "")
+//    let previewDriver = Driver(id: "alonso", racingNumber: "14", code: "ALO", givenName: "Fernando", familyName: "Alonso", dateOfBirth: "1981-07-29", nationality: "Spanish", url: "http://en.wikipedia.org/wiki/Fernando_Alonso")
+    NavigationStack {
+            SeasonDriversView(season: previewSeason)
+        }
 }

@@ -22,6 +22,10 @@ class SeasonDriversViewModel: ObservableObject {
         return []
     }
     
+    var hasDriverWithNumber: Bool {
+        drivers.contains { $0.racingNumber != nil }
+    }
+    
     var filteredDrivers: [Driver] {
         if searchText.isEmpty { return drivers }
         let query = searchText.lowercased()
