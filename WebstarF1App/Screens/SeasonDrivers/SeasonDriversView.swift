@@ -74,19 +74,24 @@ struct SeasonDriversView: View {
                             Text("\(driver.givenName) \(driver.familyName)").font(.headline)
                             if let nationality = driver.nationality { Text(NationalityFlags.flag(for: nationality)) }
                         }
-                        if let dob = driver.dateOfBirth { Text("Born " + DateFormatting.format(dob)).font(.footnote) }
+                        HStack {
+                            if let dob = driver.dateOfBirth { Text("Born " + DateFormatting.format(dob)).font(.footnote) }
+                            if let urlString = driver.url, let url = URL(string: urlString) {
+                                Button(action: {
+                                    openURL(url)
+                                }, label: {
+                                    Image(systemName: "info.circle")
+                                })
+                                .buttonStyle(.borderless)
+                                .foregroundStyle(.gray)
+                                .padding(.trailing, 4)
+                            }
+                        }
                     }
                     
                 }
                 Spacer()
-                if let urlString = driver.url, let url = URL(string: urlString) {
-                    Button(action: {
-                        openURL(url)
-                    }, label: {
-                        Image(systemName: "info.circle")
-                    })
-                    .buttonStyle(.borderless)
-                }
+                
             }
         }
     }
