@@ -38,18 +38,21 @@ struct DriverProfileView: View {
                 .foregroundColor(.gray.opacity(0.4))
                 .frame(maxWidth: .infinity, minHeight: 250)
                 .background(Color.gray.opacity(0.1))
-            case .loaded(let url):
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 250)
-                        .clipped()
-                } placeholder: {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: 250)
-                }
+            case .loaded(let image):
+                Color.clear
+                    .frame(height: 250)
+                    .overlay(
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                    )
+                    .clipped()
+//                Image(uiImage: image)
+//                        .resizable()
+//                        .scaledToFill()
+//                        .frame(maxWidth: .infinity)
+//                        .frame(height: 250)
+//                        .clipped()
             }
 
             VStack(alignment: .leading, spacing: 8) {

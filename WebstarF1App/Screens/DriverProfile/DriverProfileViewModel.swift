@@ -7,12 +7,13 @@
 
 import Foundation
 import Combine
+import UIKit
 
 @MainActor
 class DriverProfileViewModel: ObservableObject {
-    private let imageService = ImageSearchService()
+    private let imageService = ImageFetchService()
     
-    @Published var state: ViewState<URL> = .idle
+    @Published var state: ViewState<UIImage> = .idle
     
     
     let driver: Driver
@@ -22,19 +23,13 @@ class DriverProfileViewModel: ObservableObject {
     }
 
     
-    func fetchDriverImage() async  {
+    func fetchDriverImage() async {
         state = .loading
         
-        do {
-            if let url = try await imageService.fetchImageURL(for: "\(driver.givenName)_\(driver.familyName)_F1") {
-                state = .loaded(url)
-            } else {
-                state = .empty
-            }
-        } catch {
-            let message = error.localizedDescription
-            state = .error(message)
-            print("Error while fetching driver image:" + message)
+        if let image = await imageService.fetch(for: "\(driver.givenName)_\(driver.familyName)_F1") {
+            state = .loaded(image)
+        } else {
+            state = .empty
         }
     }
 }
