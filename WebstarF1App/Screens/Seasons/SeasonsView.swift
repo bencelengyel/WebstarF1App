@@ -10,6 +10,7 @@ import SwiftUI
 struct SeasonsView: View {
     @StateObject private var viewModel = SeasonsViewModel()
     @Environment(\.openURL) private var openURL
+    @State private var expandedEras: Set<String> = ["2020 – 2026"]
 
     var body: some View {
         NavigationStack {
@@ -39,12 +40,23 @@ struct SeasonsView: View {
     }
 
     private func eraCard(for seasons: [Season], label: String, image: String) -> some View {
-        VStack(spacing: 0) {
+        let isExpanded = Binding(
+            get: { expandedEras.contains(label) },
+            set: { newValue in
+                if newValue { expandedEras.insert(label) }
+                else { expandedEras.remove(label) }
+            }
+        )
+
+        return VStack(spacing: 0) {
             Image(image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
+                .onTapGesture {
+                    withAnimation { isExpanded.wrappedValue.toggle() }
+                }
 
-            DisclosureGroup {
+            DisclosureGroup(isExpanded: isExpanded) {
                 Divider()
                 ForEach(seasons) { season in
                     NavigationLink(value: season) {
