@@ -23,22 +23,26 @@ struct SeasonDriversView: View {
                 Text("Couldn't load any drivers for this season")
             case .loaded:
                 List {
-                    if viewModel.searchText.isEmpty {
-                        Section("Nationalities") {
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
-                                ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                    Section("Nationalities") {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))]) {
+                            ForEach(viewModel.nationalityCounts, id: \.0) { nationality, count in
+                                Button {
+                                    viewModel.selectedNationality = viewModel.selectedNationality == nationality ? nil : nationality
+                                } label: {
                                     Text("\(NationalityFlags.flag(for: nationality)) \(count)")
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 6)
-                                        .background(.white)
+                                        .background(viewModel.selectedNationality == nationality ? Color.accentColor : .white)
+                                        .foregroundStyle(viewModel.selectedNationality == nationality ? .white : .primary)
                                         .cornerRadius(16)
                                         .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .padding(.vertical, 4)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                            .listRowBackground(Color(.systemGroupedBackground))
                         }
+                        .padding(.vertical, 4)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
+                        .listRowBackground(Color(.systemGroupedBackground))
                     }
                     Section("Drivers") {
                         if viewModel.filteredDrivers.isEmpty {

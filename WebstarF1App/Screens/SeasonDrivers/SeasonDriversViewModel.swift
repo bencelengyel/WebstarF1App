@@ -13,6 +13,7 @@ class SeasonDriversViewModel: ObservableObject {
     private let apiService = F1APIService()
     
     @Published var searchText: String = ""
+    @Published var selectedNationality: String?
     @Published var state: ViewState<[Driver]> = .idle
     
     private var drivers: [Driver] {
@@ -27,19 +28,25 @@ class SeasonDriversViewModel: ObservableObject {
     }
     
     var filteredDrivers: [Driver] {
-        if searchText.isEmpty { return drivers }
-        let query = searchText.lowercased()
-        return drivers.filter {
-            $0.givenName.lowercased().contains(query)
-            || $0.familyName.lowercased().contains(query)
-            || ($0.nationality?.lowercased().contains(query) ?? false)
+        var result = drivers
+        if let nationality = selectedNationality {
+            result = result.filter { $0.nationality == nationality }
         }
+        if !searchText.isEmpty {
+            let query = searchText.lowercased()
+            result = result.filter {
+                $0.givenName.lowercased().contains(query)
+                || $0.familyName.lowercased().contains(query)
+                || ($0.nationality?.lowercased().contains(query) ?? false)
+            }
+        }
+        return result
     }
     
     var nationalityCounts: [(String, Int)] {
         Dictionary(grouping: drivers.compactMap(\.nationality), by: { $0 })
             .mapValues { $0.count }
-            .sorted { $0.value > $1.value }
+            .sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }
             .map { ($0.key, $0.value) }
     }
     
