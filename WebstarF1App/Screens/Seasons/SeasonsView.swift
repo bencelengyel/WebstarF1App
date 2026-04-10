@@ -64,7 +64,7 @@ struct SeasonsView: View {
                             HStack {
                                 Text(season.year)
                                     .font(.title3)
-                                    .foregroundStyle(.black)
+                                    .foregroundStyle(Color(.label))
 
                                 Button {
                                     if let url = URL(string: season.url) { openURL(url) }
@@ -88,7 +88,7 @@ struct SeasonsView: View {
             } label: {
                 Text(label)
                     .font(.title3)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(Color(.label))
                     .padding()
             }
             .padding(.trailing)
@@ -96,7 +96,7 @@ struct SeasonsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(Color(.secondarySystemGroupedBackground))
                 .shadow(radius: 4, y: 2)
         )
         .padding()

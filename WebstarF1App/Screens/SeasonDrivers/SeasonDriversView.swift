@@ -32,7 +32,7 @@ struct SeasonDriversView: View {
                                     Text("\(NationalityFlags.flag(for: nationality)) \(count)")
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 6)
-                                        .background(viewModel.selectedNationality == nationality ? Color.accentColor : .white)
+                                        .background(viewModel.selectedNationality == nationality ? Color.accentColor : Color(.secondarySystemGroupedBackground))
                                         .foregroundStyle(viewModel.selectedNationality == nationality ? .white : .primary)
                                         .cornerRadius(16)
                                         .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
