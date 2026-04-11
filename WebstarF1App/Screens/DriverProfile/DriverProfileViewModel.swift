@@ -11,10 +11,9 @@ import UIKit
 
 @MainActor
 class DriverProfileViewModel: ObservableObject {
-    private let imageService = ImageFetchService()
+    private let imageService = ImageLoader()
     
     @Published var state: ViewState<UIImage> = .idle
-    
     
     let driver: Driver
     

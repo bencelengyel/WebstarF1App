@@ -8,8 +8,8 @@
 import Foundation
 import UIKit
 
-struct ImageFetchService {
-    private let imageService = ImageSearchService()
+struct ImageLoader {
+    private let imageService = ImageURLService()
     
     func fetch(for query: String) async -> UIImage? {
         if let imageData = ImageCache.shared.image(for: query) { return imageData }

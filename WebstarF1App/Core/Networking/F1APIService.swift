@@ -19,8 +19,7 @@ struct F1APIService {
         let response: DriverResponse = try await fetch(from: Self.baseURL + "/\(year)/drivers?limit=100")
         return response.drivers
     }
-    
-    //Fetches data from URL; Decodes into struct from infered type
+
     func fetch<T: Decodable>(from urlString: String) async throws -> T {
         guard let url = URL(string: urlString) else { throw URLError(.badURL) }
         

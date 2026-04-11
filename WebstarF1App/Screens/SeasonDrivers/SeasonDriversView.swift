@@ -46,10 +46,10 @@ struct SeasonDriversView: View {
                     }
                     Section("Drivers") {
                         if viewModel.filteredDrivers.isEmpty {
-                            Text("No drives that match the search criteria")
+                            Text("No drivers that match the search criteria")
                         }else {
                             ForEach(viewModel.filteredDrivers) { driver in
-                                DriverRow(for: driver)
+                                driverRow(for: driver)
                             }
                         }
                     }
@@ -64,7 +64,7 @@ struct SeasonDriversView: View {
         })
     }
     
-    private func DriverRow(for driver: Driver) -> some View {
+    private func driverRow(for driver: Driver) -> some View {
         NavigationLink(value: driver) {
             HStack {
                 HStack {

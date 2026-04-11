@@ -11,34 +11,32 @@ struct SeasonsView: View {
     @StateObject private var viewModel = SeasonsViewModel()
     @Environment(\.openURL) private var openURL
     @State private var expandedEras: Set<String> = ["2020 – 2026"]
-
+    
     var body: some View {
         NavigationStack {
-            Group {
-                switch viewModel.state {
-                case .idle, .loading:
-                    ProgressView()
-                case .error:
-                    ErrorView(message: "Something went wrong", onRetry: { Task { await viewModel.fetchSeasons() } })
-                case .empty:
-                    Text("Couldn't load seasons")
-                case .loaded(let seasons):
-                    ScrollView {
-                        ForEach(groupByEra(seasons), id: \.label) { era in
-                            eraCard(for: era.seasons, label: era.label, image: era.image)
-                        }
+            switch viewModel.state {
+            case .idle, .loading:
+                ProgressView()
+            case .error:
+                ErrorView(message: "Something went wrong", onRetry: { Task { await viewModel.fetchSeasons() } })
+            case .empty:
+                Text("Couldn't load seasons")
+            case .loaded(let seasons):
+                ScrollView {
+                    ForEach(groupByEra(seasons), id: \.label) { era in
+                        eraCard(for: era.seasons, label: era.label, image: era.image)
                     }
-                    .background(Color(.systemGroupedBackground))
                 }
+                .background(Color(.systemGroupedBackground))
             }
-            .navigationTitle("F1 Seasons")
-            .navigationDestination(for: Season.self) { season in
-                SeasonDriversView(season: season)
-            }
+        }
+        .navigationTitle("F1 Seasons")
+        .navigationDestination(for: Season.self) { season in
+            SeasonDriversView(season: season)
         }
         .task { await viewModel.fetchSeasons() }
     }
-
+    
     private func eraCard(for seasons: [Season], label: String, image: String) -> some View {
         let isExpanded = Binding(
             get: { expandedEras.contains(label) },
@@ -47,7 +45,7 @@ struct SeasonsView: View {
                 else { expandedEras.remove(label) }
             }
         )
-
+        
         return VStack(spacing: 0) {
             Image(image)
                 .resizable()
@@ -55,7 +53,7 @@ struct SeasonsView: View {
                 .onTapGesture {
                     withAnimation { isExpanded.wrappedValue.toggle() }
                 }
-
+            
             DisclosureGroup(isExpanded: isExpanded) {
                 Divider()
                 ForEach(seasons) { season in
@@ -65,16 +63,16 @@ struct SeasonsView: View {
                                 Text(season.year)
                                     .font(.title3)
                                     .foregroundStyle(Color(.label))
-
+                                
                                 Button {
                                     if let url = URL(string: season.url) { openURL(url) }
                                 } label: {
                                     Image(systemName: "info.circle")
                                 }
                                 .buttonStyle(.borderless)
-
+                                
                                 Spacer()
-
+                                
                                 Image(systemName: "chevron.right")
                                     .foregroundStyle(.gray)
                                     .font(.caption)
@@ -101,7 +99,7 @@ struct SeasonsView: View {
         )
         .padding()
     }
-
+    
     private func groupByEra(_ seasons: [Season]) -> [(label: String, image: String, seasons: [Season])] {
         let decades: [(range: ClosedRange<Int>, label: String, image: String)] = [
             (2020...2029, "2020 – 2026", "era_2020s"),
@@ -113,7 +111,7 @@ struct SeasonsView: View {
             (1960...1969, "1960 – 1969", "era_1960s"),
             (1950...1959, "1950 – 1959", "era_1950s"),
         ]
-
+        
         return decades.compactMap { decade in
             let matching = seasons.filter { season in
                 guard let y = Int(season.year) else { return false }

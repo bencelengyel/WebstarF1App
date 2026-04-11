@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ImageSearchService {
+struct ImageURLService {
     private let apiKey = "AIzaSyADx9HTfg1vEtKt2KllxBhwpjB5qUvO52k"
     private let engineKey = "000213537299717655806:fsqehiydnxg"
     

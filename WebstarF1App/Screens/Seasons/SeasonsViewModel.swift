@@ -9,9 +9,9 @@ import Combine
 
 @MainActor
 class SeasonsViewModel: ObservableObject {
-    @Published var state: ViewState<[Season]> = .idle
-    
     private let apiService = F1APIService()
+    
+    @Published var state: ViewState<[Season]> = .idle
     
     func fetchSeasons() async {
         state = .loading

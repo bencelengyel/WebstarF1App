@@ -15,7 +15,7 @@ struct DriverProfileView: View {
     }
     
     var body: some View {
-        DriverCard(for: viewModel.driver)
+        driverCard(for: viewModel.driver)
             .frame(maxHeight: .infinity, alignment: .center)
             .background(Color(.systemGroupedBackground))
             .task { await viewModel.fetchDriverImage() }
@@ -23,7 +23,7 @@ struct DriverProfileView: View {
         
 }
     
-    func DriverCard(for driver: Driver) -> some View {
+    private func driverCard(for driver: Driver) -> some View {
         VStack(spacing: 0) {
             switch viewModel.state {
             case .idle, .loading:
@@ -47,12 +47,6 @@ struct DriverProfileView: View {
                             .scaledToFill()
                     )
                     .clipped()
-//                Image(uiImage: image)
-//                        .resizable()
-//                        .scaledToFill()
-//                        .frame(maxWidth: .infinity)
-//                        .frame(height: 250)
-//                        .clipped()
             }
 
             VStack(alignment: .leading, spacing: 8) {
