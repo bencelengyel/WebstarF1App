@@ -16,7 +16,7 @@ struct F1APIService {
     }
     
     func fetchDrivers(for year: String) async throws -> [Driver] {
-        let response: DriverResponse = try await fetch(from: Self.baseURL + "/\(year)/drivers?limit=100")
+        let response: DriverResponse = try await fetch(from: Self.baseURL + "/\(year)/drivers?limit=105")
         return response.drivers
     }
 
