@@ -25,8 +25,4 @@ See [DECISIONS.md](DECISIONS.md) for detailed reasoning behind every architectur
 ## API
 
 - F1 data: [Ergast API mirror](https://api.jolpi.ca/ergast/f1/)
-- Driver images: Google Custom Search API
-
-## Known Limitations
-
-- The 1952 season has 105 drivers. The current `?limit=105` covers this, but a proper pagination implementation would be more robust for future edge cases.
+- Driver images: Google Search API
