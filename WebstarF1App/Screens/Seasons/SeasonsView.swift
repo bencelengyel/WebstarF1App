@@ -28,12 +28,13 @@ struct SeasonsView: View {
                     }
                 }
                 .background(Color(.systemGroupedBackground))
+                .navigationTitle("F1 Seasons")
+                .navigationDestination(for: Season.self) { season in
+                    SeasonDriversView(season: season)
+                }
             }
         }
-        .navigationTitle("F1 Seasons")
-        .navigationDestination(for: Season.self) { season in
-            SeasonDriversView(season: season)
-        }
+        
         .task { await viewModel.fetchSeasons() }
     }
     
