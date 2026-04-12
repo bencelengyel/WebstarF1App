@@ -8,8 +8,8 @@
 import Foundation
 
 struct ImageURLService {
-    private let apiKey = "AIzaSyADx9HTfg1vEtKt2KllxBhwpjB5qUvO52k"
-    private let engineKey = "000213537299717655806:fsqehiydnxg"
+    private let apiKey = "API_KEY"
+    private let engineKey = "ENGINE_KEY"
     
     func fetchImageURL(for query: String) async throws -> URL? {
         guard let url = URL(string: "https://www.googleapis.com/customsearch/v1?key=\(apiKey)&cx=\(engineKey)&q=\(query)") else {
