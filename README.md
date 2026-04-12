@@ -6,7 +6,7 @@ A Formula 1 history browser for iOS — browse every season from 1950 to today, 
 
 | Seasons | Season (expanded) | Drivers | Filtering | Driver Profile |
 |---|---|---|---|---|
-| ![](screenshots/seasons.png) | ![](screenshots/seasons_expanded.png) | ![](screenshots/drivers.png) | ![](screenshots/filtering.png) | ![](screenshots/profile.png) |
+| ![](screenshots/seasons.PNG) | ![](screenshots/seasons_expanded.PNG) | ![](screenshots/drivers.PNG) | ![](screenshots/filtering.PNG) | ![](screenshots/profile.PNG) |
 
 ## Build
 
@@ -25,8 +25,4 @@ See [DECISIONS.md](DECISIONS.md) for detailed reasoning behind every architectur
 ## API
 
 - F1 data: [Ergast API mirror](https://api.jolpi.ca/ergast/f1/)
-- Driver images: Google Custom Search API
-
-## Known Limitations
-
-- The 1952 season has 105 drivers. The current `?limit=105` covers this, but a proper pagination implementation would be more robust for future edge cases.
+- Driver images: Google Search API
